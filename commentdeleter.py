@@ -3,7 +3,7 @@ from prawcore.exceptions import Forbidden
 import requests
 import time
 
-USER_AGENT = "Reddit Comment/Post Deleter by Subreddit Bot v1.0 by /u/PMDev123"
+USER_AGENT = "Reddit Comment/Post Deleter by Subreddit Bot v1.1 by /u/PMDev123"
 
 # Fill in your Reddit account information
 USERNAME = ""
@@ -11,79 +11,92 @@ PASSWORD = ""
 CLIENT_ID = ""
 CLIENT_SECRET = ""
 
-# Subreddit to delete comments/posts from
-SUBREDDIT = ""
+# Subreddits to delete comments/posts from
+# For multiple subreddits, format it like: ["sub1", "sub2", "sub3"]
+SUBREDDITS = ["x"]
+
+# Delete comments OLDER than this number of days (not inclusive)
+# If you want to delete EVERYTHING from the subreddit, set it to 0
+# If you want to do this from multiple subreddits with DIFFERENT timer values, put the subreddits individually
+TIMER = 0
 
 
 def get_comment_body_list():
     # Get all of the user's comments from the subreddit and store the ID & body
     # Based on u/shiruken's code snippet: https://www.reddit.com/r/pushshift/comments/bfc2m1/capping_at_1000_posts/
-    N = 0
     last = 0
     id_list = []
     body_list = []
-    url = f'https://api.pushshift.io/reddit/search/comment/?author={USERNAME}&subreddit={SUBREDDIT}&fields=id,created_utc,body'
 
-    while N < 10000:
-        if N == 0:
-            # The first time, make request before adding the &before param to URL
-            request = requests.get(url)
-            # Avoid rate limiting
-            time.sleep(1)
-            json = request.json()
-        else:
-            # Make a new request for comments before the one stored in 'last'
-            new_url = f"https://api.pushshift.io/reddit/search/comment/?author={USERNAME}&subreddit={SUBREDDIT}&fields=id,created_utc,body&before={last}"
-            request = requests.get(new_url)
-            time.sleep(1)
-            json = request.json()
-        if not json.get("data"):
-            # No more results
-            break
-        for s in json['data']:
-            # Add the comment id and body to separate lists
-            id_list.append(s['id'])
-            body_list.append(s['body'])
-            N += 1
-        # 'last' is the last comment's created_utc variable in the JSON
-        last = int(s['created_utc'])
-    print(N, "comments detected")
+    for sub in SUBREDDITS:
+        url = f'https://api.pushshift.io/reddit/search/comment/?author={USERNAME}&subreddit={sub}&fields=id,created_utc,body&before={TIMER}d'
+        print("Getting comment IDs for user " + USERNAME + " from /r/" + sub +
+              " older than " + str(TIMER) + " days. Please wait:")
+        N = 0
+        while N < 10000:
+            if N == 0:
+                request = requests.get(url)
+                # Avoid rate limiting
+                time.sleep(1)
+                json = request.json()
+            else:
+                # Make a new request for comments before the one stored in 'last'
+                new_url = f"https://api.pushshift.io/reddit/search/comment/?author={USERNAME}&subreddit={sub}&fields=id,created_utc,body&before={last}"
+                request = requests.get(new_url)
+                time.sleep(1)
+                json = request.json()
+            if not json.get("data"):
+                # No more results
+                break
+            for s in json['data']:
+                # Add the comment id and body to separate lists
+                id_list.append(s['id'])
+                body_list.append(s['body'])
+                N += 1
+            # 'last' is the last comment's created_utc variable in the JSON
+            last = int(s['created_utc'])
+        print(N, "comments detected from /r/" + sub + ".")
+
     return id_list, body_list
 
 
 def get_post_body_list():
     # Get all of the user's posts from the subreddit and store the ID & body
     # Based on u/shiruken's code snippet: https://www.reddit.com/r/pushshift/comments/bfc2m1/capping_at_1000_posts/
-    N = 0
     last = 0
     id_list = []
     title_list = []
-    url = f'https://api.pushshift.io/reddit/search/submission/?author={USERNAME}&subreddit={SUBREDDIT}&fields=id,created_utc,title'
 
-    while N < 10000:
-        if N == 0:
-            # The first time, make request before adding the &before param to URL
-            request = requests.get(url)
-            # Avoid rate limiting
-            time.sleep(1)
-            json = request.json()
-        else:
-            # Make a new request for posts before the one stored in 'last'
-            new_url = f"https://api.pushshift.io/reddit/search/submission/?author={USERNAME}&subreddit={SUBREDDIT}&fields=id,created_utc,title&before={last}"
-            request = requests.get(new_url)
-            time.sleep(1)
-            json = request.json()
-        if not json.get("data"):
-            # No more results
-            break
-        for s in json['data']:
-            # Add the post id and body to separate lists
-            id_list.append(s['id'])
-            title_list.append(s['title'])
-            N += 1
-        # 'last' is the last post's created_utc variable in the JSON
-        last = int(s['created_utc'])
-    print(N, "posts detected")
+    for sub in SUBREDDITS:
+        print("Getting post IDs for user " + USERNAME + " from /r/" + sub +
+              " older than " + str(TIMER) + " days. Please wait:")
+        url = f'https://api.pushshift.io/reddit/search/submission/?author={USERNAME}&subreddit={sub}&fields=id,created_utc,title&before={TIMER}d'
+
+        N = 0
+        while N < 10000:
+            if N == 0:
+                request = requests.get(url)
+                # Avoid rate limiting
+                time.sleep(1)
+                json = request.json()
+            else:
+                # Make a new request for posts before the one stored in 'last'
+                new_url = f"https://api.pushshift.io/reddit/search/submission/?author={USERNAME}&subreddit={sub}&fields=id,created_utc,title&before={last}"
+                request = requests.get(new_url)
+                time.sleep(1)
+                json = request.json()
+            if not json.get("data"):
+                # No more results
+                break
+            for s in json['data']:
+                # Add the post id and body to separate lists
+                id_list.append(s['id'])
+                title_list.append(s['title'])
+                N += 1
+            # 'last' is the last post's created_utc variable in the JSON
+            last = int(s['created_utc'])
+        print(N, "comments detected from /r/" + sub + ".")
+
     return id_list, title_list
 
 
@@ -113,6 +126,7 @@ def delete_all_comments(reddit, id_list, body_list):
     except IndexError:
         print("There was an error trying to delete comments. The subreddit might be private.")
 
+    print("")
     print("Deleted " + str(count) + " comments in total.")
 
 
@@ -134,18 +148,20 @@ def delete_all_posts(reddit, id_list, body_list):
     except IndexError:
         print("There was an error trying to delete comments. The subreddit might be private.")
 
+    print("")
     print("Deleted " + str(count) + " posts in total.")
 
 
 if __name__ == "__main__":
     start = time.time()
-    print("Getting comment IDs for user " + USERNAME + " from /r/" + SUBREDDIT + ". Please wait:")
+
     comment_id_list, comment_body_list = get_comment_body_list()
+    print()
     print("Comment IDs returned.")
     print()
 
-    print("Getting post IDs for user " + USERNAME + " from /r/" + SUBREDDIT + ". Please wait:")
     post_id_list, post_body_list = get_post_body_list()
+    print()
     print("Post IDs returned.")
     print()
 
