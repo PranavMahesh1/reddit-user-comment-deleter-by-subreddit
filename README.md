@@ -31,10 +31,11 @@ Then run:
 
 ### Reddit App Setup
 1. Login to the account you want to delete comments/posts for
-2. Go [here](https://www.reddit.com/prefs/apps/) and click the "are you a developer? create an app..." button.
-3. Give it a name and select script as the type.
-4. Put the redirect uri as http://127.0.0.1:65010/authorize_callback
-5. Click create app and take note of the client ID and client secret. 
+2. Disable 2FA if you have it on (you can reactivate it after running the script if you want)
+3. Go [here](https://www.reddit.com/prefs/apps/) and click the "are you a developer? create an app..." button.
+4. Give it a name and select script as the type.
+5. Put the redirect uri as http://127.0.0.1:65010/authorize_callback
+6. Click create app and take note of the client ID and client secret. 
 
 Here is an example of getting the client ID and client secret from a Reddit app:
 ![Example Reddit App](https://image.prntscr.com/image/VuV-R5LnQ36YWdHVloDAaw.png)
