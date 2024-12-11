@@ -1,5 +1,7 @@
 # Reddit User Comment/Post Deleter By Subreddit
 
+**NOTE:** This script may no longer work if you're not a Reddit mod, as access to Pushshift API needs you to be a Reddit mod.
+
 This is a Python script I made for **deleting all of your Reddit comments and posts from specific subreddits**. You can also specify if you want to delete comments/posts older than a certain number of days. 
 
 Many existing tools online use Reddit's API to do this - however, Reddit only fetches your last 1000 comments/posts due to API limitations, which can miss many comments. This script uses the [Pushshift API](https://github.com/pushshift/api) to bypass this limit and to be able to return more than 1000 comments/posts.  
